@@ -8,9 +8,13 @@ import http.server
 import json
 import sys
 from http import HTTPStatus
-from urllib.parse import parse_qs
 from textwrap import dedent
-from pprint import pprint
+from urllib.parse import parse_qs
+
+try:
+    from prettyprinter import cpprint as pprint, set_default_style
+except ModuleNotFoundError:
+    from pprint import pprint
 
 
 class Dumper(http.server.BaseHTTPRequestHandler):
@@ -65,7 +69,16 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Display HTTP requests on STDOUT")
     p.add_argument("--address", help="bind address", default="localhost")
     p.add_argument("--port", type=int, help="bind port", default=8080)
+    p.add_argument(
+        "--style",
+        help="set the output style for light or dark terminal",
+        default="dark",
+    )
     xs = p.parse_args()
+    try:
+        set_default_style(xs.style)
+    except NameError:
+        pass
     print(f"Listening on {xs.address}:{xs.port}, press CTRL+C to stop")
     with http.server.HTTPServer((xs.address, xs.port), Dumper) as s:
         try:
