@@ -55,8 +55,7 @@ class Dumper(http.server.BaseHTTPRequestHandler):
 
     def __print_req(self):
         msg = dedent(
-            f"""\
-            
+            f"""\n
             Recieved message from: {self.client_address[0]}
             Command: {self.command}
             Path: {self.path}
