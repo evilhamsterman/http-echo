@@ -6,13 +6,15 @@
 import argparse
 import http.server
 import json
+import signal
 import sys
 from http import HTTPStatus
 from textwrap import dedent
 from urllib.parse import parse_qs
 
 try:
-    from prettyprinter import cpprint as pprint, set_default_style
+    from prettyprinter import cpprint as pprint
+    from prettyprinter import set_default_style
 except ModuleNotFoundError:
     from pprint import pprint
 
@@ -64,6 +66,10 @@ class Dumper(http.server.BaseHTTPRequestHandler):
         return msg + str(self.headers).rstrip()
 
 
+def terminate(sig, frame):
+    raise KeyboardInterrupt
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Display HTTP requests on STDOUT")
     p.add_argument("--address", help="bind address", default="localhost")
@@ -79,6 +85,7 @@ if __name__ == "__main__":
     except NameError:
         pass
     print(f"Listening on {xs.address}:{xs.port}, press CTRL+C to stop")
+    signal.signal(signal.SIGTERM, terminate)
     with http.server.HTTPServer((xs.address, xs.port), Dumper) as s:
         try:
             s.serve_forever()
