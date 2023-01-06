@@ -10,13 +10,8 @@ import signal
 import sys
 from http import HTTPStatus
 from textwrap import dedent
+from typing import Any
 from urllib.parse import parse_qs
-
-try:
-    from prettyprinter import cpprint as pprint
-    from prettyprinter import set_default_style
-except ModuleNotFoundError:
-    from pprint import pprint
 
 
 class Dumper(http.server.BaseHTTPRequestHandler):
@@ -72,18 +67,49 @@ def terminate(sig, frame):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Display HTTP requests on STDOUT")
-    p.add_argument("--address", help="bind address", default="localhost")
-    p.add_argument("--port", type=int, help="bind port", default=8080)
     p.add_argument(
+        "-a", "--address", help="bind address (default: localhost)", default="localhost"
+    )
+    p.add_argument(
+        "-p", "--port", type=int, help="bind port (default: 8080)", default=8080
+    )
+    p.add_argument(
+        "-s",
         "--style",
-        help="set the output style for light or dark terminal",
-        default="dark",
+        help="set the style of the formatting (default: github-dark)",
+        default="github-dark",
+    )
+    p.add_argument(
+        "--list-styles", action="store_true", help="List available styles and exit"
     )
     xs = p.parse_args()
+
     try:
-        set_default_style(xs.style)
-    except NameError:
-        pass
+        from pygments import highlight
+        from pygments.formatters import Terminal256Formatter
+        from pygments.lexers import PythonLexer
+        from pprint import pformat
+
+        if xs.list_styles:
+            from pygments.styles import STYLE_MAP
+
+            print("Available styles:")
+            for s in STYLE_MAP:
+                print(s)
+            sys.exit()
+
+        def pprint(obj: Any) -> None:
+            print(
+                highlight(
+                    pformat(obj), PythonLexer(), Terminal256Formatter(style=xs.style)
+                )
+            )
+
+    except ModuleNotFoundError:
+        if xs.list_styles:
+            print("Styles not supported install pygments https://pygments.org")
+            sys.exit()
+        from pprint import pprint
     print(f"Listening on {xs.address}:{xs.port}, press CTRL+C to stop")
     signal.signal(signal.SIGTERM, terminate)
     with http.server.HTTPServer((xs.address, xs.port), Dumper) as s:
