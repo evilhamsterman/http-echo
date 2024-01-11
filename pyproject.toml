@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "http-echo"
+version = "1.0.0"
+description = "A webserver that echos what it recieves to STDOUT"
+authors = ["Dan Mills <evilhamsterman@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.scripts]
+http-echo = "http_echo.cli:app"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+typer = { version = "^0.9.0", extras = ["all"] }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
