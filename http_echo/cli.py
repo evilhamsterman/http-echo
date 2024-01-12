@@ -99,28 +99,28 @@ class Dumper(http.server.BaseHTTPRequestHandler):
 
     def __format_req_data(self) -> Panel:
         msg = dedent(
-            f"""\n
-            Recieved message from: {self.client_address[0]}
+            f"""
+            [white]Recieved message from: {self.client_address[0]}
             Command: {self.command}
-            Path: {self.path}
+            Path: {self.path}[/white]
             """
         )
-        return Panel(
-            msg,
-            title="Request info",
-            width=40,
-        )
+        return Panel(msg, title="Request info", width=40, style="bold green")
 
     def __format_json_data(self, data: str | Iterable | Mapping, title: str) -> Syntax:
-        if data is str:
+        if isinstance(data, str):
             try:
                 json.loads(data)  # validate JSON
-                s = Syntax(data, theme=STYLES.github_dark, lexer="json")
-            except json.decoder.JSONDecodeError as err:
-                raise err
+                s = Syntax(data, lexer="json", indent_guides=True, line_numbers=True)
+            except json.decoder.JSONDecodeError:
+                print("Invalid JSON")
+                raise
         else:
             s = Syntax(
-                json.dumps(data, indent=4), theme=STYLES.github_dark, lexer="json"
+                json.dumps(data, indent=4),
+                lexer="json",
+                indent_guides=True,
+                line_numbers=True,
             )
         return Panel(s, title=title, width=100)
 
